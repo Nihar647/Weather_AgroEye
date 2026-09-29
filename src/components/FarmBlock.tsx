@@ -1,0 +1,379 @@
+import React, { useState } from 'react';
+import {
+  MapPin,
+  RefreshCw,
+  Trash2,
+  Share2,
+  Droplets,
+  Wind,
+  Compass,
+  ChevronDown,
+  ChevronUp,
+  ShieldAlert,
+  ShieldCheck,
+  Sun,
+  CloudRain,
+  CloudSun,
+  CloudLightning,
+  CloudDrizzle,
+} from 'lucide-react';
+import { FarmLocation, WeatherData, Language } from '../types/weather';
+import { FarmMap } from './FarmMap';
+import { translations } from '../i18n/translations';
+
+interface FarmBlockProps {
+  farm: FarmLocation;
+  weather: WeatherData;
+  lang: Language;
+  onDeleteFarm: (id: string) => void;
+  onRefresh: () => void;
+  isLoading?: boolean;
+}
+
+export const FarmBlock: React.FC<FarmBlockProps> = ({
+  farm,
+  weather,
+  lang,
+  onDeleteFarm,
+  onRefresh,
+  isLoading = false,
+}) => {
+  const [isMapExpanded, setIsMapExpanded] = useState<boolean>(false);
+  const t = translations[lang];
+  const isHi = lang === 'hi';
+
+  const current = weather.current;
+  const isDemo = farm.isDemo;
+
+  // WhatsApp Share Handler
+  const handleShareWhatsApp = () => {
+    const sprayBadge = weather.forecast[0]?.sprayCondition || 'Optimal Window';
+    const topAlertTitle = weather.disasterAlerts && weather.disasterAlerts.length > 0
+      ? weather.disasterAlerts[0].title
+      : (isHi ? 'कोई खतरा नहीं, खेत सुरक्षित है' : 'No threats, farm is safe');
+
+    const msg = isHi
+      ? `🌱 *एग्रोआई • किसान मौसम एवं आपदा सलाह*\n📍 *खेत:* ${farm.name}\n🌡️ *तापमान:* ${current.temperature}°C (महसूस: ${current.apparentTemperature}°C)\n💧 *आर्द्रता:* ${current.humidity}%\n💨 *हवा की गति:* ${current.windSpeed} km/h (${current.windDirection})\n🧪 *कीटनाशक छिड़काव:* ${sprayBadge}\n⚠️ *आपदा चेतावनी:* ${topAlertTitle}\n\n👉 देखें: http://localhost:5173`
+      : `🌱 *AgroEye • Farm Weather & Advisory Report*\n📍 *Farm:* ${farm.name}\n🌡️ *Temp:* ${current.temperature}°C (Feels like: ${current.apparentTemperature}°C)\n💧 *Humidity:* ${current.humidity}%\n💨 *Wind Speed:* ${current.windSpeed} km/h (${current.windDirection})\n🧪 *Spray Window:* ${sprayBadge}\n⚠️ *Alert:* ${topAlertTitle}\n\n👉 View at: http://localhost:5173`;
+
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const renderWeatherIcon = (rainChance: number) => {
+    if (rainChance > 45) return <CloudLightning className="w-5 h-5 text-indigo-600" />;
+    if (rainChance > 20) return <CloudRain className="w-5 h-5 text-sky-600" />;
+    if (rainChance > 10) return <CloudDrizzle className="w-5 h-5 text-sky-500" />;
+    return <Sun className="w-5 h-5 text-amber-500" />;
+  };
+
+  const getSprayConditionBadge = (condition: string) => {
+    switch (condition) {
+      case 'Optimal Window':
+        return {
+          label: t.optimalWindow,
+          classes: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+        };
+      case 'Caution':
+        return {
+          label: t.caution,
+          classes: 'bg-amber-50 text-amber-800 border-amber-200',
+        };
+      case 'Do Not Spray':
+      default:
+        return {
+          label: t.doNotSpray,
+          classes: 'bg-rose-50 text-rose-800 border-rose-200',
+        };
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+      {/* 1. Farm Header Bar */}
+      <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-slate-50/80 to-white">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-headline font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                isDemo
+                  ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                  : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${isDemo ? 'bg-rose-600 animate-ping' : 'bg-emerald-600'}`} />
+              <span>{isDemo ? (isHi ? '🚨 आपदा अलर्ट पूर्वावलोकन (DEMO)' : '🚨 Alerts Simulation (DEMO)') : (isHi ? '🟢 लाइव ओपन-मेटियो डेटा' : '🟢 Live Open-Meteo Feed')}</span>
+            </span>
+
+            <span className="text-xs text-slate-500 font-mono">
+              📍 {farm.lat.toFixed(4)}°N, {farm.lng.toFixed(4)}°E
+            </span>
+          </div>
+
+          <h2 className="font-headline text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mt-1 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+            <span>{farm.name}</span>
+          </h2>
+        </div>
+
+        {/* Action Buttons: Refresh, WhatsApp, Remove */}
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-shrink-0">
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={isLoading}
+            className="h-9 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-headline font-bold flex items-center gap-1.5 transition-all border border-slate-200"
+            title="Refresh Live Data"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-emerald-600' : ''}`} />
+            <span className="hidden sm:inline">{isHi ? 'ताज़ा करें' : 'Refresh'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleShareWhatsApp}
+            className="h-9 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-headline font-bold flex items-center gap-1.5 transition-all border border-emerald-200"
+            title="Share Advisory on WhatsApp"
+          >
+            <Share2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="hidden sm:inline">{isHi ? 'शेयर' : 'Share'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onDeleteFarm(farm.id)}
+            className="h-9 px-2.5 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-400 text-xs transition-all border border-slate-200"
+            title="Remove Farm"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Severe Disaster Alerts or Reassuring Safe State Banner */}
+      {weather.disasterAlerts && weather.disasterAlerts.length > 0 ? (
+        <div className="p-4 bg-rose-50 border-b border-rose-200 text-rose-950 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-rose-600 animate-pulse flex-shrink-0" />
+              <h3 className="font-headline text-sm font-extrabold uppercase tracking-wide text-rose-900">
+                {isHi ? '⚠️ सक्रिय आपदा चेतावनी (DISASTER ALERT)' : '⚠️ ACTIVE SEVERE DISASTER ADVISORY'}
+              </h3>
+            </div>
+            <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white font-headline text-[10px] font-bold">
+              {weather.disasterAlerts.length} {isHi ? 'चेतावनियाँ' : 'Alerts Active'}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {weather.disasterAlerts.map((alert) => (
+              <div
+                key={alert.id}
+                className="p-3 bg-white/90 rounded-xl border border-rose-200 shadow-2xs space-y-1.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="font-headline text-xs font-bold text-slate-900">
+                    {alert.title}
+                  </h4>
+                  <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-headline text-[10px] font-extrabold uppercase border border-rose-300">
+                    {alert.severity} ({alert.probability}% {isHi ? 'संभावना' : 'Risk'})
+                  </span>
+                </div>
+                <p className="text-xs text-slate-700 leading-relaxed">
+                  {alert.description}
+                </p>
+                <div className="pt-1.5 border-t border-slate-100">
+                  <span className="text-[10px] font-headline font-bold uppercase text-emerald-800 block mb-0.5">
+                    💡 {isHi ? 'किसान हेतु अनिवार्य सुरक्षा उपाय:' : 'Mandatory Agronomic Precautions:'}
+                  </span>
+                  <ul className="text-[11px] text-slate-800 list-disc list-inside space-y-0.5">
+                    {alert.precautions.map((p, idx) => (
+                      <li key={idx}>{p}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 bg-emerald-50/90 border-b border-emerald-200/90 text-emerald-950 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center flex-shrink-0 text-emerald-700 shadow-2xs">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <h3 className="font-headline text-sm font-bold text-emerald-950 flex items-center gap-1.5">
+                <span>{isHi ? '🛡️ कोई खतरा नहीं, खेत सुरक्षित है' : '🛡️ No threats, farm is safe'}</span>
+              </h3>
+              <p className="text-xs text-emerald-700 mt-0.5">
+                {isHi ? 'सभी मौसमी मानक सामान्य और सुरक्षित कृषि सीमा के भीतर हैं।' : 'All meteorological and calamity parameters are within safe agricultural thresholds.'}
+              </p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-[11px] font-headline font-bold tracking-wider uppercase flex-shrink-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>{isHi ? 'सुरक्षित' : 'Safe'}</span>
+          </span>
+        </div>
+      )}
+
+      {/* 3. Core Weather Telemetry: Temperature, Humidity, Wind Speed, Wind Direction */}
+      <div className="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-3 gap-3.5 bg-white">
+        {/* Temperature Card */}
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-headline uppercase font-bold text-slate-500 tracking-wider block">
+              🌡️ {isHi ? 'तापमान (TEMPERATURE)' : 'TEMPERATURE'}
+            </span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="font-headline text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-tabular">
+                {current.temperature}°C
+              </span>
+            </div>
+            <span className="text-xs font-bold text-emerald-700 block mt-0.5">
+              {current.weatherCondition}
+            </span>
+            <span className="text-[11px] text-slate-400 font-medium">
+              {t.feelsLike} {current.apparentTemperature}°C
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-amber-100/70 border border-amber-200 flex items-center justify-center flex-shrink-0">
+            <Sun className="w-6 h-6 text-amber-600" />
+          </div>
+        </div>
+
+        {/* Humidity Card */}
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-headline uppercase font-bold text-slate-500 tracking-wider block">
+              💧 {isHi ? 'आर्द्रता (HUMIDITY)' : 'HUMIDITY'}
+            </span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="font-headline text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-tabular">
+                {current.humidity}%
+              </span>
+            </div>
+            <span className="text-xs font-medium text-slate-600 block mt-0.5">
+              {current.humidity > 70 ? (isHi ? 'उच्च नमी' : 'High Moisture') : (isHi ? 'सामान्य नमी' : 'Moderate Moisture')}
+            </span>
+            <span className="text-[11px] text-slate-400 font-medium font-mono">
+              VPD: {current.vpd} kPa
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-sky-100/70 border border-sky-200 flex items-center justify-center flex-shrink-0">
+            <Droplets className="w-6 h-6 text-sky-600" />
+          </div>
+        </div>
+
+        {/* Wind Speed & Direction Card */}
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+          <div className="min-w-0">
+            <span className="text-[11px] font-headline uppercase font-bold text-slate-500 tracking-wider block">
+              💨 {isHi ? 'हवा की गति (WIND SPEED)' : 'WIND SPEED'}
+            </span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="font-headline text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-tabular">
+                {current.windSpeed} <span className="text-sm font-normal text-slate-500">km/h</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-1 text-xs font-bold text-slate-800 mt-0.5 truncate">
+              <Compass className="w-3.5 h-3.5 text-teal-600 flex-shrink-0" />
+              <span className="truncate">{current.windDirection}</span>
+            </div>
+            <span className="text-[11px] text-slate-400 font-medium font-mono">
+              {t.gusts}: {current.windGusts} km/h
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-teal-100/70 border border-teal-200 flex items-center justify-center flex-shrink-0">
+            <Wind className="w-6 h-6 text-teal-600" />
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Next 7 Days Forecast (directly from Open-Meteo) */}
+      <div className="px-4 sm:px-5 pb-5">
+        <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-1.5">
+              <span className="font-headline text-xs uppercase tracking-wider text-slate-900 font-bold">
+                📅 {t.sevenDayForecast}
+              </span>
+            </div>
+            <span className="text-[11px] text-slate-500 font-medium">
+              {t.dailySprayIndex}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+            {weather.forecast.map((day, idx) => {
+              const spray = getSprayConditionBadge(day.sprayCondition);
+              return (
+                <div
+                  key={idx}
+                  className="p-2.5 bg-white rounded-xl border border-slate-200 flex flex-col justify-between items-center text-center shadow-2xs hover:border-emerald-300 transition-colors"
+                >
+                  <span className="font-headline text-xs font-bold text-slate-900">
+                    {day.day}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {day.date}
+                  </span>
+
+                  <div className="my-2">
+                    {renderWeatherIcon(day.rainChance)}
+                  </div>
+
+                  <span className="text-[11px] font-bold text-slate-800 line-clamp-1">
+                    {day.tempMax}° / <span className="text-slate-500 font-normal">{day.tempMin}°</span>
+                  </span>
+
+                  <span className="text-[10px] text-sky-600 font-medium mt-0.5">
+                    {day.rainChance}% rain
+                  </span>
+
+                  <span
+                    className={`mt-2 px-1.5 py-0.5 rounded font-headline text-[9px] font-bold uppercase tracking-wider border w-full truncate ${spray.classes}`}
+                    title={day.sprayCondition}
+                  >
+                    {spray.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Collapsible Map & Satellite Radar Drawer */}
+      <div className="border-t border-slate-200/80 bg-slate-50 px-4 py-3 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => setIsMapExpanded(!isMapExpanded)}
+          className="text-xs font-headline font-bold text-slate-700 hover:text-emerald-700 flex items-center gap-1.5 transition-colors"
+        >
+          <span>🗺️ {isHi ? 'गूगल मैप्स सैटेलाइट नक्शा एवं वर्षा रडार देखें' : 'View Google Maps Satellite & Rain Radar'}</span>
+          {isMapExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
+
+        <span className="text-[11px] text-slate-400 font-mono">
+          Google Maps • RainViewer
+        </span>
+      </div>
+
+      {isMapExpanded && (
+        <div className="p-4 bg-slate-900 border-t border-slate-800">
+          <FarmMap
+            lat={farm.lat}
+            lng={farm.lng}
+            locationName={farm.name}
+            onLocationSelect={() => {}}
+            isMarkingFarm={false}
+            onToggleMarkingFarm={() => {}}
+            spatialHazards={weather.spatialHazards}
+            lang={lang}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
