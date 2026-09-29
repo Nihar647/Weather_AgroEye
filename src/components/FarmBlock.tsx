@@ -43,7 +43,6 @@ export const FarmBlock: React.FC<FarmBlockProps> = ({
   const isHi = lang === 'hi';
 
   const current = weather.current;
-  const isDemo = farm.isDemo;
 
   // WhatsApp Share Handler
   const handleShareWhatsApp = () => {
@@ -93,15 +92,9 @@ export const FarmBlock: React.FC<FarmBlockProps> = ({
       <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-slate-50/80 to-white">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className={`px-2.5 py-0.5 rounded-full text-[10px] font-headline font-bold uppercase tracking-wider flex items-center gap-1.5 ${
-                isDemo
-                  ? 'bg-rose-100 text-rose-800 border border-rose-200'
-                  : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-              }`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${isDemo ? 'bg-rose-600 animate-ping' : 'bg-emerald-600'}`} />
-              <span>{isDemo ? (isHi ? '🚨 आपदा अलर्ट पूर्वावलोकन (DEMO)' : '🚨 Alerts Simulation (DEMO)') : (isHi ? '🟢 लाइव ओपन-मेटियो डेटा' : '🟢 Live Open-Meteo Feed')}</span>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-headline font-bold uppercase tracking-wider flex items-center gap-1.5 bg-emerald-100 text-emerald-800 border border-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+              <span>{isHi ? '🟢 लाइव ओपन-मेटियो डेटा' : '🟢 Live Open-Meteo Feed'}</span>
             </span>
 
             <span className="text-xs text-slate-500 font-mono">

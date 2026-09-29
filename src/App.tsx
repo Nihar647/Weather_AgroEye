@@ -2,13 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   MapPin,
   Plus,
-  Zap,
   Globe,
   Loader2,
   Sprout,
 } from 'lucide-react';
 import { FarmLocation, WeatherData, Language } from './types/weather';
-import { fetchFarmWeather, getDemoFarmWeather } from './services/weatherApi';
+import { fetchFarmWeather } from './services/weatherApi';
 import { FarmBlock } from './components/FarmBlock';
 import { AddFarmModal } from './components/AddFarmModal';
 
@@ -22,7 +21,9 @@ export function App() {
     const saved = localStorage.getItem('agroeye_saved_farms');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Exclude any legacy demo farms
+        return Array.isArray(parsed) ? parsed.filter((f: FarmLocation) => !f.isDemo) : [];
       } catch (e) {
         console.error('Failed to parse farms', e);
       }
@@ -49,12 +50,6 @@ export function App() {
 
   // Fetch weather for a farm
   const loadFarmWeather = useCallback(async (farm: FarmLocation, language: Language) => {
-    if (farm.isDemo) {
-      const demoData = getDemoFarmWeather(language);
-      setWeatherMap((prev) => ({ ...prev, [farm.id]: demoData }));
-      return;
-    }
-
     setLoadingMap((prev) => ({ ...prev, [farm.id]: true }));
     try {
       const data = await fetchFarmWeather(farm.lat, farm.lng, farm.name, language);
@@ -97,24 +92,6 @@ export function App() {
     setActiveFarmId(newFarm.id);
     localStorage.setItem('agroeye_saved_farms', JSON.stringify(updated));
     localStorage.setItem('agroeye_active_farm_id', newFarm.id);
-  };
-
-  // Add Demo Farm with Calamity Alerts
-  const handleAddDemoFarm = () => {
-    const demoId = `demo_farm_${Date.now()}`;
-    const demoFarm: FarmLocation = {
-      id: demoId,
-      name: isHi ? 'डेमो खेत • आपदा अलर्ट पूर्वावलोकन' : 'Demo Farm • Calamity Threat Zone',
-      lat: 24.6128,
-      lng: 73.8821,
-      isDemo: true,
-    };
-
-    const updated = [demoFarm, ...farms];
-    setFarms(updated);
-    setActiveFarmId(demoId);
-    localStorage.setItem('agroeye_saved_farms', JSON.stringify(updated));
-    localStorage.setItem('agroeye_active_farm_id', demoId);
   };
 
   // Delete Farm
@@ -164,17 +141,6 @@ export function App() {
               <span>{isHi ? 'खेत जोड़ें' : 'Add Farm'}</span>
             </button>
 
-            {/* Demo Farm Button */}
-            <button
-              type="button"
-              onClick={handleAddDemoFarm}
-              className="h-9 px-3.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-headline text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 border border-rose-200 transition-all shadow-2xs active:scale-95"
-              title="Add a sample Demo Farm with extreme weather calamity alerts"
-            >
-              <Zap className="w-4 h-4 text-rose-600" />
-              <span>{isHi ? 'डेमो खेत (अलर्ट्स)' : 'Demo Farm'}</span>
-            </button>
-
             {/* Language Toggle */}
             <button
               type="button"
@@ -209,31 +175,16 @@ export function App() {
               </p>
             </div>
 
-            {/* Empty State Call to Actions */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            {/* Empty State Call to Action */}
+            <div className="flex items-center justify-center pt-2">
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(true)}
-                className="w-full sm:w-auto h-12 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-headline text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
+                className="w-full sm:w-auto h-12 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-headline text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
               >
                 <Plus className="w-5 h-5" />
                 <span>{isHi ? '+ नया खेत जोड़ें' : '+ Add New Farm'}</span>
               </button>
-
-              <button
-                type="button"
-                onClick={handleAddDemoFarm}
-                className="w-full sm:w-auto h-12 px-6 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-800 font-headline text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 border border-rose-200 shadow-2xs transition-all active:scale-95"
-              >
-                <Zap className="w-5 h-5 text-rose-600" />
-                <span>{isHi ? '⚡ डेमो खेत देखें (आपदा अलर्ट)' : '⚡ Try Demo Farm (Alerts Preview)'}</span>
-              </button>
-            </div>
-
-            <div className="pt-4 border-t border-slate-100 text-xs text-slate-400">
-              {isHi
-                ? 'डेमो खेत बाढ़, आंधी और फफूंद रोग की आपातकालीन चेतावनियों को प्रदर्शित करता है।'
-                : 'Demo farm displays live simulation of heavy flood, squall wind, and pathogen alerts.'}
             </div>
           </div>
         )}
@@ -255,7 +206,7 @@ export function App() {
                         : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'
                     }`}
                   >
-                    <span>{f.isDemo ? '🚨' : '📍'}</span>
+                    <span>📍</span>
                     <span className="truncate max-w-[140px]">{f.name}</span>
                   </button>
                 ))}

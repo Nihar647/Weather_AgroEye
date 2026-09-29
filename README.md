@@ -24,7 +24,6 @@ An independent, production-ready, deployable agricultural weather web applicatio
 3. **🛡️ Reassuring Safe Status & Calamity Alerts**:
    - **No Threats State**: If no imminent disaster thresholds are breached, displays a prominent reassurance card: *"🛡️ No threats, farm is safe" / "🛡️ कोई खतरा नहीं, खेत सुरक्षित है"*.
    - **Severe Weather Calamity Alerts**: Detects flash floods, extreme squalls, cloudbursts, heatwaves, and foliar fungal pathogen conditions.
-   - **⚡ Demo Farm**: One-click preview of severe calamity alerts and extreme weather conditions beside the Add Farm button.
 
 4. **🧪 7-Day Chemical Spray Window Advisory**:
    - 🟢 **Optimal Window**: Wind < 15 km/h, Rain chance < 20%, Temp 18–30°C.
