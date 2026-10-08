@@ -108,6 +108,19 @@ export const translations = {
     // Alert Banner
     activeWarning: 'ACTIVE DISASTER ADVISORY FOR YOUR FARM',
     recommendedAction: 'Mandatory Agronomic Action:',
+
+    // Soil Section
+    soilSectionTitle: 'Regional Soil Health & Composition Profile',
+    soilTypeLabel: 'Soil Type in Selected Area',
+    soilTextureLabel: 'Soil Texture',
+    soilPhLabel: 'Soil Reaction (pH)',
+    waterRetentionLabel: 'Water Retention',
+    drainageLabel: 'Internal Drainage',
+    organicMatterLabel: 'Organic Matter',
+    fertilityLabel: 'Nutrient Status',
+    suitableCropsLabel: 'Ideal Crops for this Soil',
+    managementTipLabel: 'Agronomic Soil Management Advice',
+    liveSoilMetrics: 'Live Surface Telemetry',
   },
   hi: {
     // Header & Meta
@@ -216,6 +229,19 @@ export const translations = {
     // Alert Banner
     activeWarning: 'आपके खेत के लिए गंभीर मौसमी चेतावनी',
     recommendedAction: 'अनिवार्य कृषि सुरक्षा उपाय:',
+
+    // Soil Section
+    soilSectionTitle: 'क्षेत्रीय मृदा स्वास्थ्य एवं संरचना कार्ड',
+    soilTypeLabel: 'चयनित क्षेत्र का मृदा प्रकार',
+    soilTextureLabel: 'मिट्टी की बनावट (Texture)',
+    soilPhLabel: 'मृदा पीएच (pH मान)',
+    waterRetentionLabel: 'जलधारण क्षमता',
+    drainageLabel: 'आंतरिक जल निकास',
+    organicMatterLabel: 'जैविक कार्बन',
+    fertilityLabel: 'पोषक तत्व भंडार',
+    suitableCropsLabel: 'इस मिट्टी हेतु उपयुक्त फसलें',
+    managementTipLabel: 'किसान हेतु मृदा प्रबंधन सलाह',
+    liveSoilMetrics: 'सक्रिय मृदा सेंसर डेटा',
   }
 };
 

@@ -7,6 +7,7 @@ export interface FarmLocation {
   lng: number;
   crop?: string;
   areaAcres?: number;
+  soilType?: string;
   isDemo?: boolean;
 }
 
@@ -127,6 +128,34 @@ export interface HistoryDay {
   icon: string;
 }
 
+export interface SoilProfile {
+  soilType: string;
+  soilTypeHi: string;
+  texture: string;
+  textureHi: string;
+  colorHex: string;
+  badgeBg: string;
+  badgeText: string;
+  ph: string;
+  phValue: number;
+  phCategory: 'Acidic' | 'Neutral' | 'Alkaline';
+  drainage: string;
+  drainageHi: string;
+  waterRetention: string;
+  waterRetentionHi: string;
+  organicMatter: string;
+  organicMatterHi: string;
+  fertilityStatus: string;
+  fertilityStatusHi: string;
+  suitableCrops: string[];
+  suitableCropsHi: string[];
+  managementTip: string;
+  managementTipHi: string;
+  clayPercent?: number;
+  sandPercent?: number;
+  siltPercent?: number;
+}
+
 export interface WeatherData {
   locationName: string;
   latitude: number;
@@ -140,4 +169,5 @@ export interface WeatherData {
   forecast: DailyForecastItem[];
   spatialHazards: SpatialHazard[];
   history: HistoryDay[];
+  soilProfile: SoilProfile;
 }

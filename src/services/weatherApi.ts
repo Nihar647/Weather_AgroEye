@@ -10,6 +10,7 @@ import {
   SprayCondition,
   Language,
 } from '../types/weather';
+import { getSoilProfile, classifySoilByCoordinates } from './soilService';
 
 // WMO Weather code interpreter
 export function decodeWeatherCode(code: number): { conditionEn: string; conditionHi: string; icon: string } {
@@ -352,6 +353,8 @@ export async function fetchFarmWeather(
     });
   }
 
+  const soilProfile = await getSoilProfile(lat, lng, farmName);
+
   return {
     locationName: farmName || `Farm (${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E)`,
     latitude: lat,
@@ -365,6 +368,7 @@ export async function fetchFarmWeather(
     forecast,
     spatialHazards: [],
     history,
+    soilProfile,
   };
 }
 
@@ -604,6 +608,7 @@ export function getDemoFarmWeather(lang: Language = 'en'): WeatherData {
     forecast,
     spatialHazards: [],
     history: [],
+    soilProfile: classifySoilByCoordinates(24.6128, 73.8821, 'Udaipur, Rajasthan'),
   };
 }
 

@@ -16,6 +16,10 @@ import {
   CloudSun,
   CloudLightning,
   CloudDrizzle,
+  Layers,
+  FlaskConical,
+  Sprout,
+  Info,
 } from 'lucide-react';
 import { FarmLocation, WeatherData, Language } from '../types/weather';
 import { FarmMap } from './FarmMap';
@@ -337,7 +341,132 @@ export const FarmBlock: React.FC<FarmBlockProps> = ({
         </div>
       </div>
 
-      {/* 5. Collapsible Map & Satellite Radar Drawer */}
+      {/* 5. Regional Soil Profile & Composition Card */}
+      {weather.soilProfile && (
+        <div className="px-4 sm:px-5 pb-5">
+          <div className="border border-slate-200 rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-amber-50/40 via-white to-emerald-50/30">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700">
+                  <Layers className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-headline text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                    <span>{t.soilSectionTitle}</span>
+                  </h3>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    {isHi ? 'कृषि अनुसंधान परिषद (ICAR) एवं ISRIC SoilGrids आधारित विश्लेषण' : 'Based on ICAR Agro-Climatic Classification & ISRIC SoilGrids'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Soil Type Main Badge */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-100 border border-amber-200 text-amber-900 text-xs font-headline font-extrabold tracking-wide self-start sm:self-auto">
+                <span
+                  className="w-2.5 h-2.5 rounded-full border border-black/10"
+                  style={{ backgroundColor: weather.soilProfile.colorHex || '#8D6E63' }}
+                />
+                <span>{isHi ? weather.soilProfile.soilTypeHi : weather.soilProfile.soilType}</span>
+              </div>
+            </div>
+
+            {/* Grid of Soil Properties */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* 1. Texture */}
+              <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
+                <span className="text-[10px] font-headline uppercase font-bold text-slate-400 block tracking-wider">
+                  🧪 {t.soilTextureLabel}
+                </span>
+                <span className="font-headline text-xs sm:text-sm font-bold text-slate-800 mt-1 block">
+                  {isHi ? weather.soilProfile.textureHi : weather.soilProfile.texture}
+                </span>
+                {weather.soilProfile.clayPercent !== undefined && (
+                  <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">
+                    Clay: {weather.soilProfile.clayPercent}% | Sand: {weather.soilProfile.sandPercent}%
+                  </span>
+                )}
+              </div>
+
+              {/* 2. Soil pH Reaction */}
+              <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
+                <span className="text-[10px] font-headline uppercase font-bold text-slate-400 block tracking-wider">
+                  ⚗️ {t.soilPhLabel}
+                </span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="font-headline text-base sm:text-lg font-extrabold text-slate-900 font-tabular">
+                    pH {weather.soilProfile.ph}
+                  </span>
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
+                    {weather.soilProfile.phCategory}
+                  </span>
+                </div>
+              </div>
+
+              {/* 3. Water Retention & Drainage */}
+              <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
+                <span className="text-[10px] font-headline uppercase font-bold text-slate-400 block tracking-wider">
+                  💧 {t.waterRetentionLabel}
+                </span>
+                <span className="font-headline text-xs sm:text-sm font-bold text-slate-800 mt-1 block">
+                  {isHi ? weather.soilProfile.waterRetentionHi : weather.soilProfile.waterRetention}
+                </span>
+                <span className="text-[10px] text-slate-500 mt-0.5 block">
+                  {t.drainageLabel}: {isHi ? weather.soilProfile.drainageHi : weather.soilProfile.drainage}
+                </span>
+              </div>
+
+              {/* 4. Live Sensor Moisture & Temperature */}
+              <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200 shadow-2xs">
+                <span className="text-[10px] font-headline uppercase font-bold text-emerald-800 block tracking-wider">
+                  📡 {t.liveSoilMetrics}
+                </span>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="font-headline text-base sm:text-lg font-extrabold text-emerald-950 font-tabular">
+                    {current.soilMoisturePercent}%
+                  </span>
+                  <span className="text-xs text-emerald-700 font-semibold font-tabular">
+                    {current.soilTemperature}°C
+                  </span>
+                </div>
+                <span className="text-[10px] text-emerald-600 font-medium mt-0.5 block">
+                  {isHi ? 'सक्रिय जड़ क्षेत्र की नमी' : 'Root-zone moisture & temp'}
+                </span>
+              </div>
+            </div>
+
+            {/* Suitable Crops Pill Tags */}
+            <div className="mt-3.5 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="text-[11px] font-headline font-bold text-slate-700 flex items-center gap-1.5 flex-shrink-0">
+                <Sprout className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{t.suitableCropsLabel}:</span>
+              </span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {(isHi ? weather.soilProfile.suitableCropsHi : weather.soilProfile.suitableCrops).map((crop, i) => (
+                  <span
+                    key={i}
+                    className="px-2 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold"
+                  >
+                    {crop}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Agronomic Management Advice */}
+            <div className="mt-3 p-3 bg-amber-50/80 rounded-xl border border-amber-200/80 flex items-start gap-2">
+              <Info className="w-4 h-4 text-amber-700 mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-amber-950 leading-relaxed">
+                <strong className="font-headline font-bold block mb-0.5 text-amber-900">
+                  💡 {t.managementTipLabel}:
+                </strong>
+                <span>{isHi ? weather.soilProfile.managementTipHi : weather.soilProfile.managementTip}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. Collapsible Map & Satellite Radar Drawer */}
       <div className="border-t border-slate-200/80 bg-slate-50 px-4 py-3 flex items-center justify-between">
         <button
           type="button"

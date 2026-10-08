@@ -92,6 +92,7 @@ export function App() {
     setActiveFarmId(newFarm.id);
     localStorage.setItem('agroeye_saved_farms', JSON.stringify(updated));
     localStorage.setItem('agroeye_active_farm_id', newFarm.id);
+    loadFarmWeather(newFarm, lang);
   };
 
   // Delete Farm
@@ -234,7 +235,24 @@ export function App() {
                     onRefresh={() => loadFarmWeather(currentFarm, lang)}
                     isLoading={loadingMap[currentFarm.id]}
                   />
-                ) : null}
+                ) : (
+                  <div className="p-8 bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center gap-4 text-center shadow-xs">
+                    <MapPin className="w-8 h-8 text-emerald-600" />
+                    <div>
+                      <h3 className="font-headline text-lg font-bold text-slate-900">{currentFarm.name}</h3>
+                      <p className="text-xs text-slate-500 font-mono mt-0.5">
+                        {currentFarm.lat.toFixed(4)}°N, {currentFarm.lng.toFixed(4)}°E
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => loadFarmWeather(currentFarm, lang)}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-headline font-bold rounded-xl shadow-xs transition-colors"
+                    >
+                      {isHi ? 'मौसम डेटा लोड करें' : 'Load Farm Weather'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
